@@ -27,34 +27,35 @@ def dump(start_page, end_page, loop_dely_in_seconds,):
 
 
         for case in data["cases"]:
-            print("Case #" + str(case_numer))
+            dump_to_file("Case #" + str(case_numer))
 
             case_id = case["data"]["ID"]
-            print("Case ID: ", case_id)
+            dump_to_file("Case ID: ", case_id)
 
             case_title = case["data"]["TITLE"]
-            print("Case Title: ", case_title)
+            dump_to_file("Case Title: ", case_title)
 
             try:
                 case_plaintiff = case_title.split(": ")[1][0:-11]
-                print("Case Plaintiff: ", case_plaintiff)
+                dump_to_file("Case Plaintiff: ", case_plaintiff)
 
                 case_accused = case_title.split(": ")[2][0:-12]
-                print("Case Accused: ", case_accused)
+                dump_to_file("Case Accused: ", case_accused)
 
                 case_court = case_title.split(": ")[3]
-                print("Case Court: ", case_court)
+                dump_to_file("Case Court: ", case_court)
             except Exception as e:
-                print("parse error", e)
+                dump_to_file("parse error", e)
 
 
 
             case_subject = case["data"]["CASESUBJECT"]
-            print("Case Subject: ", case_subject)
+            dump_to_file("Case Subject: ", case_subject)
 
+            time.sleep(0.2)
             case_details = requests.get("https://www.edaalat.org/request/cases/" + str(case_id))
             case_details = case_details.json()
-            print("Case Details: ", case_details)
+            dump_to_file("Case Details: ", case_details)
 
             # check if there is attachment in the case details and download the attachment
             num = 0
@@ -64,15 +65,16 @@ def dump(start_page, end_page, loop_dely_in_seconds,):
                     if "CMS.HSTMINUTE" in data:
                         for minute in data["CMS.HSTMINUTE"]:
                             try:
-                                print("Minute: ", minute["MINUTETEXT"])
+                                dump_to_file("Minute: ", minute["MINUTETEXT"])
 
                                 # download the minute and create new file and write the minute in it
                                 result = requests.get("https://www.edaalat.org/cases-files/" + minute["MINUTETEXT"])
                                 with open("data/attachments/report" + str(case_numer) + "_" + str(num) + ".html", "w") as file:
                                     file.write(result.text)
                                 num += 1
+                                time.sleep(0.2)
                             except Exception as e:
-                                print("no doc for download", e)
+                                print("no doc for download", e, case_numer)
                         
             if "CMS.LTRLETTERCASE" in case_details:
                 for document in case_details["CMS.LTRLETTERCASE"]:
@@ -80,15 +82,17 @@ def dump(start_page, end_page, loop_dely_in_seconds,):
                     if "CMS.LTRLETTER" in document:
                         for letter in document["CMS.LTRLETTER"]:
                             try:
-                                print("Letter: ", letter["LETTERTEXT"])
+                                dump_to_file("Letter: ", letter["LETTERTEXT"])
 
                                 # download the letter and create new file and write the letter in it
                                 result = requests.get("https://www.edaalat.org/cases-files/" + letter["LETTERTEXT"])
                                 with open("data/attachments/letter" + str(case_numer) + "_" + str(num) + ".html", "w") as file:
                                     file.write(result.text)
                                 num += 1
+                                time.sleep(0.2)
+
                             except Exception as e:
-                                print("no doc for download", e)
+                                print("no doc for download", e, case_numer)
 
 
 
@@ -98,7 +102,7 @@ def dump(start_page, end_page, loop_dely_in_seconds,):
                         
                         for attachment in document["CMS.LTRLETTERATTACHMENT"]:
                             try:
-                                print("Attachment: ", attachment["ATTACHEDDOCUMENT"])
+                                dump_to_file("Attachment: ", attachment["ATTACHEDDOCUMENT"])
 
                                 # download the pdf attachment and create new file and write the attachment in it
 
@@ -107,18 +111,30 @@ def dump(start_page, end_page, loop_dely_in_seconds,):
                                     file.write(result.content)
                                 
                                 num += 1
+                                time.sleep(0.2)
                             except Exception as e:
-                                print("no doc for download", e)
+                                print("no doc for download", e, case_numer)
 
 
 
             
 
 
+            dump_to_file("==================================SEPERATOR==================================")
+            print("Case number: ", case_numer, " is dumped")
             print("==================================SEPERATOR==================================")
-            
+
+
             case_numer += 1
             current_page = page
+
+def dump_to_file(text, *args):
+    with open("data/data.txt", "a") as file:
+        file.write(text)
+        for arg in args:
+            file.write(str(arg))
+        file.write("\n")
+    
 
 def main():
     start_page = 1
@@ -128,7 +144,7 @@ def main():
     try:
         dump(start_page, end_page, loop_dely_in_seconds)
     except Exception as e:
-        print("An error occured: ", e)
+        print("An error occured: ", e, case_numer, current_page)
 
     finally:
         print("Last case number: ",  case_numer)

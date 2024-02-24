@@ -11,7 +11,7 @@ chmod +x setup.sh
 // activating virtual environment
 source venv/bin/activate
 
-// 1- change the starting page and ending page in the dump.py file
+// 1- change the starting page and ending page in the dump.py file, main method
 // 2- running the script
 python3 dump.py
 ```
