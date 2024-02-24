@@ -1,4 +1,4 @@
-# script for dumping edaalat.org
+## script for dumping edaalat.org data
 
 this script is just for educational purposes, and it is not intended to be used for any illegal activities.
 
